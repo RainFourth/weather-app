@@ -5,24 +5,20 @@ import * as Location from 'expo-location'
 import Loading from "./components/Loading";
 import {Accuracy} from "expo-location";
 import {empty} from "./utils/utils";
-import useLoading from "./hooks/useLoading";
-import useErr from "./hooks/useErr";
 import {apiWGetWeather} from "./api/api-weather-map";
 
 
 // Определяю местоположение...
 // Загружаю информацию о погоде...
 
-const loadLocation = "load geolocation"
-const loadWeather = "load weather"
-
-const errLocation = "err location"
-const errWeather = "err weather"
 
 export default function App() {
 
-    const loads = useLoading()
-    const errs = useErr()
+    const [loadLocation, setLoadLocation] = useState(false)
+    const [loadWeather, setLoadWeather] = useState(false)
+
+    const [errLocation, setErrLocation] = useState(undefined as string|empty)
+    const [errWeather, setErrWeather] = useState(undefined as string|empty)
 
     const [location, setLocation] = useState(undefined as empty|any)
     const [weather, setWeather] = useState(undefined as empty|any)
@@ -30,11 +26,13 @@ export default function App() {
 
     useEffect(()=>{
         (async ()=>{
-            loads.start(loadLocation)
-            errs.clear(errLocation)
+            setLoadLocation(true)
+            setErrLocation(undefined)
             let {status} = await Location.getForegroundPermissionsAsync()
+            //console.log("status:")
+            //console.log(status)
             if (status !== 'granted'){
-                errs.set(errLocation, 'Location permission denied')
+                setErrLocation('Location permission denied')
                 return Promise.reject('Location permission denied')
             }
             const locationOptions = {accuracy: Accuracy.BestForNavigation}
@@ -44,25 +42,25 @@ export default function App() {
             setLocation(location)
         })()
             .catch(err=>{
-                errs.set(errLocation)
+                setErrLocation("error")
                 Alert.alert(
                     "Не могу определить местоположение", "Возможно не выданы разрешения"
                 )
             })
-            .finally(()=>loads.finish(loadLocation))
+            .finally(()=>setLoadLocation(false))
     },[])
 
     useEffect(()=>{
         if (location){
-            loads.start(loadWeather)
-            errs.clear(errWeather)
+            setLoadWeather(true)
+            setErrWeather(undefined)
             apiWGetWeather(location.coords.latitude, location.coords.longitude)
             .then(response=>{
                 setWeather(response.data)
             }).catch(err=>{
-                errs.set(errWeather)
+                setErrWeather("error")
             }).finally(()=>{
-                loads.finish(loadWeather)
+                setLoadWeather(false)
             })
         }
     },[location])
@@ -71,16 +69,16 @@ export default function App() {
     console.log(location)
     console.log(weather)
     console.log("===========")
-    console.log(loads.get(loadLocation))
-    console.log(loads.get(loadWeather))
-    console.log(errs.get(errLocation))
-    console.log(errs.get(errWeather))
+    console.log(loadLocation)
+    console.log(loadWeather)
+    console.log(errLocation)
+    console.log(errWeather)
 
 
 
     return <>
         {
-            loads.get(loadLocation) &&
+            loadLocation &&
             <Loading />
         }
 
