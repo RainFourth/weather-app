@@ -5,35 +5,35 @@ import * as Location from 'expo-location'
 import Loading from "./components/Loading";
 import {Accuracy} from "expo-location";
 import {empty} from "./utils/utils";
-import {apiWGetWeather} from "./api/api-weather-map";
-
-
-// Определяю местоположение...
-// Загружаю информацию о погоде...
-
 
 export default function App() {
 
-    const [loadLocation, setLoadLocation] = useState(false)
-    const [loadWeather, setLoadWeather] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [location, setLocation] = useState(undefined as empty|object);
+    const [errMsg, setErrMsg] = useState(undefined as empty|string);
 
-    const [errLocation, setErrLocation] = useState(undefined as string|empty)
-    const [errWeather, setErrWeather] = useState(undefined as string|empty)
+    /*const getLocation = async () => {
+        try {
+            const permissions = await Location.getForegroundPermissionsAsync()
+            console.log(permissions)
+        } catch (err) {
+            console.log(err)
+        }
 
-    const [location, setLocation] = useState(undefined as empty|any)
-    const [weather, setWeather] = useState(undefined as empty|any)
+
+        //const locationOptions = {accuracy: Accuracy.BestForNavigation}
+        //const location = await Location.getCurrentPositionAsync(locationOptions)
+        //console.log(location)
+    }*/
 
 
     useEffect(()=>{
         (async ()=>{
-            setLoadLocation(true)
-            setErrLocation(undefined)
-            let {status} = await Location.getForegroundPermissionsAsync()
-            //console.log("status:")
-            //console.log(status)
+            setLoading(true)
+            let {status} = await Location.requestBackgroundPermissionsAsync()
             if (status !== 'granted'){
-                setErrLocation('Location permission denied')
-                return Promise.reject('Location permission denied')
+                setErrMsg('Location permission denied')
+                //return
             }
             const locationOptions = {accuracy: Accuracy.BestForNavigation}
             const location = await Location.getCurrentPositionAsync(locationOptions)
@@ -41,44 +41,18 @@ export default function App() {
             // todo сделать запрос к апи
             setLocation(location)
         })()
-            .catch(err=>{
-                setErrLocation("error")
-                Alert.alert(
-                    "Не могу определить местоположение", "Возможно не выданы разрешения"
-                )
-            })
-            .finally(()=>setLoadLocation(false))
+            .catch(err=>Alert.alert(
+            "Не могу определить местоположение", "Возможно не выданы разрешения"
+            ))
+            .finally(()=>setLoading(false))
     },[])
 
-    useEffect(()=>{
-        if (location){
-            setLoadWeather(true)
-            setErrWeather(undefined)
-            apiWGetWeather(location.coords.latitude, location.coords.longitude)
-            .then(response=>{
-                setWeather(response.data)
-            }).catch(err=>{
-                setErrWeather("error")
-            }).finally(()=>{
-                setLoadWeather(false)
-            })
-        }
-    },[location])
-
-    console.log("---------------------------------------")
     console.log(location)
-    console.log(weather)
-    console.log("===========")
-    console.log(loadLocation)
-    console.log(loadWeather)
-    console.log(errLocation)
-    console.log(errWeather)
-
-
+    console.log(errMsg)
 
     return <>
         {
-            loadLocation &&
+            loading &&
             <Loading />
         }
 
