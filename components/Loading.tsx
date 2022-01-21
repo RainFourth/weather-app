@@ -2,9 +2,9 @@ import React from 'react'
 import { StyleSheet, Text, View } from 'react-native';
 
 
-export default function Loading(){
+export default function Loading({msg}: {msg:string}){
     return <View style={styles.linear}>
-        <Text style={styles.text}>Получение погоды...</Text>
+        <Text style={styles.text}>{msg}</Text>
     </View>
 }
 
