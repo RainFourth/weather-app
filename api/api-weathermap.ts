@@ -5,7 +5,10 @@ const API_KEY = "7fe5cda06031469cf40d04ee9674ff71";
 
 const ax = Axios.create({
     baseURL: "https://api.openweathermap.org/data",
-    params: {appid: API_KEY} // ...&appid=7fe5cda06031469cf40d04ee9674ff71
+    params: {
+        appid: API_KEY, // ...&appid=7fe5cda06031469cf40d04ee9674ff71
+        units: "metric" // сделать в градусах цельсия
+    }
 })
 
 

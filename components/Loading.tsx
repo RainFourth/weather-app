@@ -1,11 +1,14 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 
 
 export default function Loading({msg}: {msg:string}){
-    return <View style={styles.linear}>
-        <Text style={styles.text}>{msg}</Text>
-    </View>
+    return <>
+        <StatusBar barStyle="dark-content"/>
+        <View style={styles.linear}>
+            <Text style={styles.text}>{msg}</Text>
+        </View>
+    </>
 }
 
 

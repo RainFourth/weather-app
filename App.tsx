@@ -6,10 +6,19 @@ import Loading from "./components/Loading";
 import {Accuracy} from "expo-location";
 import {empty} from "./utils/utils";
 import {apiWGetWeather} from "./api/api-weathermap";
+import Weather from "./components/Weather";
 
 
 // Определяю местоположение...
 // Загружаю информацию о погоде...
+
+/*
+    todo
+     разрешение на геолокацию
+     проверить включена ли геолокация (мне в принципе приблизительной хватит)
+     получение данных а текущей локации
+     получение данных о погоде (можно ещё проверить доступность инета)
+ */
 
 export default function App() {
 
@@ -23,8 +32,7 @@ export default function App() {
 
     const [locationPermission, setLocationPermission] = useState(false)
     const [location, setLocation] = useState(undefined as empty|Location.LocationObject)
-    const [weather, setWeather] = useState(undefined as empty|{})
-
+    const [weather, setWeather] = useState(undefined as empty|{[prop: string]:any})
 
 
 
@@ -51,7 +59,7 @@ export default function App() {
     useEffect(()=>{
         setLoadLocationPermission(true)
         setErrLocationPermission(undefined)
-        Location.requestBackgroundPermissionsAsync()
+        Location.requestForegroundPermissionsAsync()
             .then(({status})=>{
                 if (status==='granted'){
                     setLocationPermission(true)
@@ -73,20 +81,26 @@ export default function App() {
         if (locationPermission){
             setLoadLocation(true)
             setErrLocation(undefined)
-            const locationOptions = {accuracy: Accuracy.BestForNavigation}
+            const locationOptions = {accuracy: Accuracy.Low}
             Location.getCurrentPositionAsync(locationOptions)
                 .then(location=>{
                     setLocation(location)
                 })
                 .catch(err=>{
+                    console.log("error:")
+                    console.log(err)
                     setLocation(undefined)
                     setErrLocation("Ошибка получения геолокации")
                 })
                 .finally(()=>{
+                    console.log("location finally")
                     setLoadLocation(false)
                 })
+        } else {
+            setLocation(undefined)
         }
     },[locationPermission])
+
 
     useEffect(()=>{
         if (location){
@@ -101,6 +115,8 @@ export default function App() {
                 }).finally(()=>{
                 setLoadWeather(false)
                 })
+        } else {
+            setWeather(undefined)
         }
     },[location])
 
@@ -126,119 +142,27 @@ export default function App() {
             .finally(()=>setLoading(false))
     },[])*/
 
-    console.log(locationPermission)
-    console.log(location)
-    console.log(weather)
 
 
-    return <>
-        {
-            loadLocationPermission &&
-            <Loading msg={"Получаю разрешение на геолокацию..."}/>
-        }
-        {
-            loadLocation &&
-            <Loading msg={"Определяю местоположение..."}/>
-        }
-        {
-            loadWeather &&
-            <Loading msg={"Загружаю погоду..."}/>
-        }
-
-        {
-            !(loadLocationPermission || loadLocation || loadWeather) &&
-            <View style={{flex:1, justifyContent: 'flex-end'}}>
-                <Text>READY</Text>
-            </View>
-
-        }
+    //console.log(locationPermission)
+    if (location) console.log(location)
+    if (weather) console.log(weather)
 
 
-    </>
+    if (loadLocationPermission) {
+        return <Loading msg={"Получаю разрешение на геолокацию..."}/>
+    }
+    if (loadLocation) {
+        return <Loading msg={"Определяю местоположение..."}/>
+    }
+    if (loadWeather){
+        return <Loading msg={"Загружаю погоду..."}/>
+    }
+    if (weather) {
+        return <Weather temp={weather.main.temp} condition={weather.weather[0].main}/>
+    }
+
+    return <></>
 }
 
-
-
-
-
-/*
-
-// Определяю местоположение...
-// Загружаю информацию о погоде...
-
-const loadLocation = "load geolocation"
-const loadWeather = "load weather"
-
-const errLocation = "err location"
-const errWeather = "err weather"
-
-export default function App() {
-
-    const loads = useLoading()
-    const errs = useErr()
-
-    const [location, setLocation] = useState(undefined as empty|any)
-    const [weather, setWeather] = useState(undefined as empty|any)
-
-
-    useEffect(()=>{
-        (async ()=>{
-            loads.start(loadLocation)
-            errs.clear(errLocation)
-            let {status} = await Location.getForegroundPermissionsAsync()
-            if (status !== 'granted'){
-                errs.set(errLocation, 'Location permission denied')
-                return Promise.reject('Location permission denied')
-            }
-            const locationOptions = {accuracy: Accuracy.BestForNavigation}
-            const location = await Location.getCurrentPositionAsync(locationOptions)
-            const {coords: {latitude, longitude}} = location
-            // todo сделать запрос к апи
-            setLocation(location)
-        })()
-            .catch(err=>{
-                errs.set(errLocation)
-                Alert.alert(
-                    "Не могу определить местоположение", "Возможно не выданы разрешения"
-                )
-            })
-            .finally(()=>loads.finish(loadLocation))
-    },[])
-
-    useEffect(()=>{
-        if (location){
-            loads.start(loadWeather)
-            errs.clear(errWeather)
-            apiWGetWeather(location.coords.latitude, location.coords.longitude)
-            .then(response=>{
-                setWeather(response.data)
-            }).catch(err=>{
-                errs.set(errWeather)
-            }).finally(()=>{
-                loads.finish(loadWeather)
-            })
-        }
-    },[location])
-
-    console.log("---------------------------------------")
-    console.log(location)
-    console.log(weather)
-    console.log("===========")
-    console.log(loads.get(loadLocation))
-    console.log(loads.get(loadWeather))
-    console.log(errs.get(errLocation))
-    console.log(errs.get(errWeather))
-
-
-
-    return <>
-        {
-            loads.get(loadLocation) &&
-            <Loading />
-        }
-
-
-    </>
-}
- */
 
