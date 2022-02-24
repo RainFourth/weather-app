@@ -20,6 +20,12 @@ import Weather from "./components/Weather";
      получение данных о погоде (можно ещё проверить доступность инета)
  */
 
+
+// todo сделать цепочку в что-то типаDataProviderAsync
+// todo собрать APK
+
+
+
 export default function App() {
 
     const [loadLocationPermission, setLoadLocationPermission] = useState(false)
